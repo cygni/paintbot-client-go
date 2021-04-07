@@ -8,7 +8,7 @@ For running your own server see [Paintbot Server Repository](https://github.com/
 
 ## Requirements
 
-* Go 1.14
+* Go 1.16
 * Paintbot Server (local or remote, there's one running by Cygni so no worries ;) )
 
 ## Usage
