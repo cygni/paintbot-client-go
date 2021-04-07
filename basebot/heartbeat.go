@@ -10,7 +10,7 @@ import (
 	"paintbot-client/utilities/timeHelper"
 )
 
-const timeBetweenHearbeats = 30 * time.Second
+const timeBetweenHeartbeats = 30 * time.Second
 
 func heartbeat(conn *websocket.Conn, playerID *string) {
 
@@ -20,8 +20,8 @@ func heartbeat(conn *websocket.Conn, playerID *string) {
 			ReceivingPlayerID: playerID,
 			Timestamp:         timeHelper.Now(),
 		}
-		log.Debug("sending hearbeat")
+		log.Debug("sending heartbeat")
 		send(conn, rq)
-		time.Sleep(timeBetweenHearbeats)
+		time.Sleep(timeBetweenHeartbeats)
 	}
 }
