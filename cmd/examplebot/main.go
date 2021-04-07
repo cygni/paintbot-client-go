@@ -19,14 +19,14 @@ var lastDir = 0
 
 // Implement your paintbot here
 func calculateMove(updateEvent models.MapUpdateEvent) models.Action {
-	utility := maputility.MapUtility{Map: updateEvent.Map, CurrentPlayerID: *updateEvent.ReceivingPlayerID}
-	me := utility.GetMyCharacterInfo()
+	utility := maputility.New(updateEvent.Map, *updateEvent.ReceivingPlayerID)
+	me := utility.GetMe()
 	move := models.Stay
-	if me.StunnedForGameTicks > 0 {
+	if me.StunnedForTicks() > 0 {
 		return models.Stay
 	}
 
-	if me.CarryingPowerUp {
+	if me.HasPowerUp() {
 		return models.Explode
 	}
 

@@ -8,7 +8,7 @@ import (
 
 func TestMapUtility_convertPositionToCoordinates(t *testing.T) {
 	mu := MapUtility{
-		Map: models.Map{Width: 5},
+		mapp: models.Map{Width: 5},
 	}
 
 	c := mu.ConvertPositionToCoordinates(0)
@@ -29,7 +29,7 @@ func TestMapUtility_convertPositionToCoordinates(t *testing.T) {
 
 func TestMapUtility_convertCoordinatesToPosition(t *testing.T) {
 	mu := MapUtility{
-		Map: models.Map{Width: 5},
+		mapp: models.Map{Width: 5},
 	}
 	pos := mu.ConvertCoordinatesToPosition(models.Coordinates{X: 0, Y: 0})
 	if pos != 0 {
@@ -44,7 +44,7 @@ func TestMapUtility_convertCoordinatesToPosition(t *testing.T) {
 
 func TestMapUtility_coordOutOfBounds(t *testing.T) {
 	mu := MapUtility{
-		Map: models.Map{Width: 5, Height: 5},
+		mapp: models.Map{Width: 5, Height: 5},
 	}
 
 	if mu.IsCoordinatesOutOfBounds(models.Coordinates{X: 1, Y: 1}) {
@@ -62,7 +62,7 @@ func TestMapUtility_coordOutOfBounds(t *testing.T) {
 
 func TestMapUtility_CanIMove(t *testing.T) {
 	mu := MapUtility{
-		Map: models.Map{
+		mapp: models.Map{
 			Width:  3,
 			Height: 3,
 			CharacterInfos: []models.CharacterInfo{{
@@ -70,7 +70,7 @@ func TestMapUtility_CanIMove(t *testing.T) {
 				ID:       "myId",
 			}},
 		},
-		CurrentPlayerID: "myId",
+		currentPlayerID: "myId",
 	}
 
 	if !mu.CanIMoveInDirection(models.Right) {
@@ -82,7 +82,7 @@ func TestMapUtility_CanIMove(t *testing.T) {
 	}
 
 	mu = MapUtility{
-		Map: models.Map{
+		mapp: models.Map{
 			Width:  3,
 			Height: 3,
 			CharacterInfos: []models.CharacterInfo{{
@@ -90,7 +90,7 @@ func TestMapUtility_CanIMove(t *testing.T) {
 				ID:       "myId",
 			}},
 		},
-		CurrentPlayerID: "myId",
+		currentPlayerID: "myId",
 	}
 	if !mu.CanIMoveInDirection(models.Left) {
 		t.Fail()
@@ -106,7 +106,7 @@ func TestMapUtility_CanIMove(t *testing.T) {
 	}
 
 	mu = MapUtility{
-		Map: models.Map{
+		mapp: models.Map{
 			Width:  3,
 			Height: 3,
 			CharacterInfos: []models.CharacterInfo{{
@@ -115,14 +115,14 @@ func TestMapUtility_CanIMove(t *testing.T) {
 				ID:              "myId",
 			}},
 		},
-		CurrentPlayerID: "myId",
+		currentPlayerID: "myId",
 	}
 	if !mu.CanIMoveInDirection(models.Explode) {
 		t.Fail()
 	}
 
 	mu = MapUtility{
-		Map: models.Map{
+		mapp: models.Map{
 			Width:  3,
 			Height: 3,
 			CharacterInfos: []models.CharacterInfo{{
@@ -131,7 +131,7 @@ func TestMapUtility_CanIMove(t *testing.T) {
 			}},
 			ObstacleUpPositions: []int{4},
 		},
-		CurrentPlayerID: "myId",
+		currentPlayerID: "myId",
 	}
 
 	if mu.CanIMoveInDirection(models.Left) {
