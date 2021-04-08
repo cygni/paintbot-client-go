@@ -1,16 +1,28 @@
 package maputility
 
-import "paintbot-client/models"
+import (
+	"paintbot-client/models"
+	"paintbot-client/utilities/arrays"
+)
 
 // Utility for getting information from the map object in a bit more developer friendly format
 type MapUtility struct {
-	Map             models.Map
-	CurrentPlayerID string
+	mapp            models.Map
+	currentPlayerID string
 }
+
+
+func New(m models.Map, currentPlayerID string) MapUtility {
+	return MapUtility{
+		mapp:            m,
+		currentPlayerID: currentPlayerID,
+	}
+}
+
 
 // returns true if the current player can perform the given action given no action for all other players
 func (u *MapUtility) CanIMoveInDirection(action models.Action) bool {
-	info := u.GetMyCharacterInfo()
+	info := u.getMyCharacterInfo()
 
 	if info.StunnedForGameTicks > 0 {
 		return false
@@ -26,6 +38,7 @@ func (u *MapUtility) CanIMoveInDirection(action models.Action) bool {
 
 	pos := u.GetMyCoordinates()
 	pos = u.TranslateCoordinateByAction(action, pos)
+
 	return u.IsTileAvailableForMovementTo(pos)
 }
 
@@ -51,12 +64,25 @@ func (u *MapUtility) GetPlayerColouredPositions(playerId string) []models.Coordi
 	return u.ConvertPositionsToCoordinates(u.GetCharacterInfo(playerId).ColouredPosition)
 }
 
+func (u *MapUtility) GetColouredBy(coordinates models.Coordinates) *Player {
+	pos := u.ConvertCoordinatesToPosition(coordinates)
+
+	for _, c := range u.mapp.CharacterInfos {
+		if arrays.Contains(c.ColouredPosition, pos) {
+			p := u.toPlayer(c)
+			return &p
+		}
+	}
+
+	return nil
+}
+
 func (u *MapUtility) ListCoordinatesContainingPowerUps() []models.Coordinates {
-	return u.ConvertPositionsToCoordinates(u.Map.PowerUpPositions)
+	return u.ConvertPositionsToCoordinates(u.mapp.PowerUpPositions)
 }
 
 func (u *MapUtility) ListCoordinatesContainingObstacles() []models.Coordinates {
-	return u.ConvertPositionsToCoordinates(u.Map.ObstacleUpPositions)
+	return u.ConvertPositionsToCoordinates(u.mapp.ObstacleUpPositions)
 }
 
 // returns true if tile is walkable
@@ -68,19 +94,25 @@ func (u *MapUtility) IsTileAvailableForMovementTo(coord models.Coordinates) bool
 
 // returns the coordinates of the current player
 func (u *MapUtility) GetMyCoordinates() models.Coordinates {
-	return u.ConvertPositionToCoordinates(u.GetMyCharacterInfo().Position)
+	return u.ConvertPositionToCoordinates(u.getMyCharacterInfo().Position)
 }
 
 // returns information about the current player
-func (u *MapUtility) GetMyCharacterInfo() models.CharacterInfo {
-	return u.GetCharacterInfo(u.CurrentPlayerID)
+func (u *MapUtility) getMyCharacterInfo() models.CharacterInfo {
+	return u.GetCharacterInfo(u.currentPlayerID)
 }
+
+// returns the current player
+func (u *MapUtility) GetMe() Player {
+	return Player{info: u.GetCharacterInfo(u.currentPlayerID), utility: u}
+}
+
 
 // returns information about the given player
 func (u *MapUtility) GetCharacterInfo(playerID string) models.CharacterInfo {
-	for i := range u.Map.CharacterInfos {
-		if u.Map.CharacterInfos[i].ID == playerID {
-			return u.Map.CharacterInfos[i]
+	for i := range u.mapp.CharacterInfos {
+		if u.mapp.CharacterInfos[i].ID == playerID {
+			return u.mapp.CharacterInfos[i]
 		}
 	}
 	panic("Trying to find invalid playerID: " + playerID)
@@ -88,8 +120,8 @@ func (u *MapUtility) GetCharacterInfo(playerID string) models.CharacterInfo {
 
 // Returns true if the coordinate is withing the game field
 func (u *MapUtility) IsCoordinatesOutOfBounds(coord models.Coordinates) bool {
-	w := u.Map.Width
-	h := u.Map.Height
+	w := u.mapp.Width
+	h := u.mapp.Height
 	return coord.X < 0 || coord.Y < 0 || coord.X >= w || coord.Y >= h
 }
 
@@ -104,34 +136,26 @@ func (u *MapUtility) GetTileAt(coordinates models.Coordinates) models.Tile {
 }
 
 func (u *MapUtility) getTileAtPosition(position int) models.Tile {
-	if contains(u.Map.ObstacleUpPositions, position) {
+	if arrays.Contains(u.mapp.ObstacleUpPositions, position) {
 		return models.Obstacle
 	}
 
-	if contains(u.Map.PowerUpPositions, position) {
+	if arrays.Contains(u.mapp.PowerUpPositions, position) {
 		return models.PowerUp
 	}
 
-	if contains(u.getPlayerPositions(), position) {
+	if arrays.Contains(u.getPlayerPositions(), position) {
 		return models.Player
 	}
 
 	return models.Open
 }
 
-func contains(ns []int, n int) bool {
-	for i := range ns {
-		if ns[i] == n {
-			return true
-		}
-	}
-	return false
-}
 
 // Converts a position in the flattened single array representation
 // of the Map to a Coordinates.
 func (u *MapUtility) ConvertPositionToCoordinates(position int) models.Coordinates {
-	w := u.Map.Width
+	w := u.mapp.Width
 	return models.Coordinates{
 		X: position % w,
 		Y: position / w,
@@ -141,7 +165,7 @@ func (u *MapUtility) ConvertPositionToCoordinates(position int) models.Coordinat
 // Converts a MapCoordinate to the same position in the flattened
 // single array representation of the Map.
 func (u *MapUtility) ConvertCoordinatesToPosition(coordinates models.Coordinates) int {
-	w := u.Map.Width
+	w := u.mapp.Width
 	return coordinates.Y*w + coordinates.X
 }
 
@@ -164,9 +188,17 @@ func (u *MapUtility) ConvertCoordinatesToPositions(coordinates []models.Coordina
 }
 
 func (u *MapUtility) getPlayerPositions() []int {
-	positions := make([]int, len(u.Map.CharacterInfos))
-	for i := range u.Map.CharacterInfos {
-		positions[i] = u.Map.CharacterInfos[i].Position
+	positions := make([]int, len(u.mapp.CharacterInfos))
+	for i := range u.mapp.CharacterInfos {
+		positions[i] = u.mapp.CharacterInfos[i].Position
 	}
 	return positions
 }
+
+func (u *MapUtility) toPlayer(info models.CharacterInfo) Player {
+	return Player{
+		info:    info,
+		utility: u,
+	}
+}
+
