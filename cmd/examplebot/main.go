@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	basebot.Start("Simple Bot", models.Training, desiredGameSettings, calculateMove)
+	basebot.Start("Simple Go Bot", models.Training, desiredGameSettings, calculateMove)
 }
 
 var (
