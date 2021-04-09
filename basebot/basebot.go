@@ -15,27 +15,30 @@ import (
 
 var mux sync.Mutex
 
-var gm models.GameMode
+type GameState struct {
+	gameMode models.GameMode
+	settings models.GameSettings
+}
 
-func Start(playerName string, gameMode models.GameMode, desiredGameSettings *models.GameSettings, calculateMove func(event models.MapUpdateEvent) models.Action) {
-	gm = gameMode
+func Start(playerName string, gameMode models.GameMode, desiredGameSettings *models.GameSettings, calculateMove func(settings models.GameSettings, event models.MapUpdateEvent) models.Action) {
+	state := GameState{
+		gameMode: gameMode,
+	}
 	conn := getWebsocketConnection(gameMode)
 	defer conn.Close()
 
 	registerPlayer(conn, playerName, desiredGameSettings)
 
 	handleMapUpdate := func(conn *websocket.Conn, event models.MapUpdateEvent) {
-		action := calculateMove(event)
+		action := calculateMove(state.settings, event)
 		sendMove(conn, event, action)
 	}
 
-	more := true
-	for more {
-		more = !recv(conn, handleMapUpdate)
+	for !state.recv(conn, handleMapUpdate) {
 	}
 }
 
-func recv(conn *websocket.Conn, handleMapUpdate func(*websocket.Conn, models.MapUpdateEvent)) (done bool) {
+func (s *GameState) recv(conn *websocket.Conn, handleMapUpdate func(*websocket.Conn, models.MapUpdateEvent)) (done bool) {
 	var msg []byte
 	var err error
 	if _, msg, err = conn.ReadMessage(); err != nil {
@@ -53,16 +56,22 @@ func recv(conn *websocket.Conn, handleMapUpdate func(*websocket.Conn, models.Map
 	case "se.cygni.paintbot.api.exception.InvalidMessage":
 		panic("invalid message: " + string(msg))
 	case "se.cygni.paintbot.api.response.PlayerRegistered":
-		sendClientInfo(conn, gameMSG)
+		playerRegisteredEvent := models.PlayerRegisteredEvent{}
+		if err = json.Unmarshal(msg, &playerRegisteredEvent); err != nil {
+			panic(err)
+		}
+
+		s.settings = playerRegisteredEvent.GameSettings
 		log.Infof("Player registered")
+		sendClientInfo(conn, gameMSG)
 		go heartbeat(conn, gameMSG.ReceivingPlayerID)
 		StartGame(conn)
 	case "se.cygni.paintbot.api.event.GameLinkEvent":
-		gamelinkEvent := &models.GameLinkEvent{}
-		if err := json.Unmarshal(msg, gamelinkEvent); err != nil {
+		gameLinkEvent := &models.GameLinkEvent{}
+		if err := json.Unmarshal(msg, gameLinkEvent); err != nil {
 			panic(err)
 		}
-		log.Infof("Game can be viewed at: %s\n", gamelinkEvent.URL)
+		log.Infof("Game can be viewed at: %s\n", gameLinkEvent.URL)
 	case "se.cygni.paintbot.api.event.GameStartingEvent":
 		log.Infof("Game started\n")
 	case "se.cygni.paintbot.api.event.MapUpdateEvent":
@@ -71,7 +80,7 @@ func recv(conn *websocket.Conn, handleMapUpdate func(*websocket.Conn, models.Map
 			panic(err)
 		}
 		if updateEvent.GameTick%10 == 0 {
-			log.Infof("Game tick: %d\n", updateEvent.GameTick)
+			log.Infof("Game tick: %d/%d\n", updateEvent.GameTick, s.settings.TotalTicks())
 		}
 		handleMapUpdate(conn, updateEvent)
 	case "se.cygni.paintbot.api.event.GameResultEvent":
@@ -93,7 +102,8 @@ func recv(conn *websocket.Conn, handleMapUpdate func(*websocket.Conn, models.Map
 		if event.PlayerWinnerID == *event.ReceivingPlayerID {
 			log.Info("You won the game")
 		}
-		if gm == models.Training {
+
+		if s.gameMode == models.Training {
 			return true
 		}
 	case "se.cygni.paintbot.api.event.TournamentEndedEvent":

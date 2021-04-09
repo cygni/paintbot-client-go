@@ -26,6 +26,10 @@ type GameSettings struct {
 	PointsPerTick                  bool `json:"pointsPerTick"`
 }
 
+func (s *GameSettings) TotalTicks() int {
+	return (s.GameDurationInSeconds * 1000) / s.TimeInMSPerTick
+}
+
 type RegisterPlayerEvent struct {
 	Type              string        `json:"type"`
 	PlayerName        string        `json:"playerName"`

@@ -11,14 +11,12 @@ type MapUtility struct {
 	currentPlayerID string
 }
 
-
 func New(m models.Map, currentPlayerID string) MapUtility {
 	return MapUtility{
 		mapp:            m,
 		currentPlayerID: currentPlayerID,
 	}
 }
-
 
 // returns true if the current player can perform the given action given no action for all other players
 func (u *MapUtility) CanIMoveInDirection(action models.Action) bool {
@@ -60,10 +58,6 @@ func (u *MapUtility) TranslateCoordinateByAction(action models.Action, pos model
 	}
 }
 
-func (u *MapUtility) GetPlayerColouredPositions(playerId string) []models.Coordinates {
-	return u.ConvertPositionsToCoordinates(u.GetCharacterInfo(playerId).ColouredPosition)
-}
-
 func (u *MapUtility) GetColouredBy(coordinates models.Coordinates) *Player {
 	pos := u.ConvertCoordinatesToPosition(coordinates)
 
@@ -77,12 +71,19 @@ func (u *MapUtility) GetColouredBy(coordinates models.Coordinates) *Player {
 	return nil
 }
 
+// returns list of all the coordinates containing a power up
 func (u *MapUtility) ListCoordinatesContainingPowerUps() []models.Coordinates {
 	return u.ConvertPositionsToCoordinates(u.mapp.PowerUpPositions)
 }
 
-func (u *MapUtility) ListCoordinatesContainingObstacles() []models.Coordinates {
+// returns list of all the coordinates containing a obstacle
+func (u *MapUtility) GetObstacleCoordinates() []models.Coordinates {
 	return u.ConvertPositionsToCoordinates(u.mapp.ObstacleUpPositions)
+}
+
+// returns List of all the coordinates coloured by the given player
+func (u *MapUtility) ListCoordinatesColouredByPlayer(playerId string) []models.Coordinates {
+	return u.ConvertPositionsToCoordinates(u.getCharacterInfo(playerId).ColouredPosition)
 }
 
 // returns true if tile is walkable
@@ -99,17 +100,17 @@ func (u *MapUtility) GetMyCoordinates() models.Coordinates {
 
 // returns information about the current player
 func (u *MapUtility) getMyCharacterInfo() models.CharacterInfo {
-	return u.GetCharacterInfo(u.currentPlayerID)
+	return u.getCharacterInfo(u.currentPlayerID)
 }
 
 // returns the current player
 func (u *MapUtility) GetMe() Player {
-	return Player{info: u.GetCharacterInfo(u.currentPlayerID), utility: u}
+	c := u.getCharacterInfo(u.currentPlayerID)
+	return Player{info: &c, utility: u}
 }
 
-
 // returns information about the given player
-func (u *MapUtility) GetCharacterInfo(playerID string) models.CharacterInfo {
+func (u *MapUtility) getCharacterInfo(playerID string) models.CharacterInfo {
 	for i := range u.mapp.CharacterInfos {
 		if u.mapp.CharacterInfos[i].ID == playerID {
 			return u.mapp.CharacterInfos[i]
@@ -150,7 +151,6 @@ func (u *MapUtility) getTileAtPosition(position int) models.Tile {
 
 	return models.Open
 }
-
 
 // Converts a position in the flattened single array representation
 // of the Map to a Coordinates.
@@ -197,8 +197,7 @@ func (u *MapUtility) getPlayerPositions() []int {
 
 func (u *MapUtility) toPlayer(info models.CharacterInfo) Player {
 	return Player{
-		info:    info,
+		info:    &info,
 		utility: u,
 	}
 }
-

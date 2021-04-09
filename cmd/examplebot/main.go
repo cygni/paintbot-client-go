@@ -14,11 +14,13 @@ func main() {
 	basebot.Start("Simple Go Bot", models.Training, desiredGameSettings, calculateMove)
 }
 
-var moves = []models.Action{models.Explode, models.Left, models.Down, models.Right, models.Up} //, models.Stay}
-var lastDir = 0
+var (
+	moves   = []models.Action{models.Explode, models.Left, models.Down, models.Right, models.Up} // , models.Stay}
+	lastDir = 0
+)
 
 // Implement your paintbot here
-func calculateMove(updateEvent models.MapUpdateEvent) models.Action {
+func calculateMove(settings models.GameSettings, updateEvent models.MapUpdateEvent) models.Action {
 	utility := maputility.New(updateEvent.Map, *updateEvent.ReceivingPlayerID)
 	me := utility.GetMe()
 	move := models.Stay

@@ -13,7 +13,6 @@ import (
 const timeBetweenHeartbeats = 30 * time.Second
 
 func heartbeat(conn *websocket.Conn, playerID *string) {
-
 	for {
 		rq := &models.HearbeatMessage{
 			Type:              "se.cygni.paintbot.api.request.HeartBeatRequest",
