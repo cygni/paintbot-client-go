@@ -41,3 +41,9 @@ And don't forget to respond within the time limit. default is 250 ms including n
 
 ### Help
 There's a utility class with nifty methods to help you out. Take a look at [Map utility](utilities/maputility/README.md)
+
+### Pitfalls
+
+Beware the common mishaps:
+
+- If two bots try to move to the same empty space, they will collide and stun each other. Once the stun ends, they risk doing the same thing again. And again, and again. Don't be the bot who runs into another bot the whole game!
