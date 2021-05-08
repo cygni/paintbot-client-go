@@ -96,14 +96,14 @@ type CharacterInfo struct {
 }
 
 type Map struct {
-	Width               int             `json:"width"`
-	Height              int             `json:"height"`
-	WorldTick           int             `json:"worldTick"`
-	CharacterInfos      []CharacterInfo `json:"characterInfos"`
-	PowerUpPositions    []int           `json:"powerUpPositions"`
-	ObstacleUpPositions []int           `json:"obstaclePositions"`
-	CollisionInfos      []int           `json:"collisionInfos"`
-	ExplosionInfos      []int           `json:"explosionInfos"`
+	Width               int                      `json:"width"`
+	Height              int                      `json:"height"`
+	WorldTick           int                      `json:"worldTick"`
+	CharacterInfos      []CharacterInfo          `json:"characterInfos"`
+	PowerUpPositions    []int                    `json:"powerUpPositions"`
+	ObstacleUpPositions []int                    `json:"obstaclePositions"`
+	CollisionInfos      []int                    `json:"collisionInfos"`
+	ExplosionInfos      []map[string]interface{} `json:"explosionInfos"`
 }
 
 type MapUpdateEvent struct {

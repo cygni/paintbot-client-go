@@ -15,7 +15,7 @@ func main() {
 }
 
 var (
-	moves   = []models.Action{models.Explode, models.Left, models.Down, models.Right, models.Up} // , models.Stay}
+	moves   = []models.Action{models.Right, models.Down, models.Left, models.Up} // models.Explode, models.Stay}
 	lastDir = 0
 )
 
@@ -23,7 +23,7 @@ var (
 func calculateMove(settings models.GameSettings, updateEvent models.MapUpdateEvent) models.Action {
 	utility := maputility.New(updateEvent.Map, *updateEvent.ReceivingPlayerID)
 	me := utility.GetMe()
-	move := models.Stay
+
 	if me.StunnedForTicks() > 0 {
 		return models.Stay
 	}
@@ -32,15 +32,11 @@ func calculateMove(settings models.GameSettings, updateEvent models.MapUpdateEve
 		return models.Explode
 	}
 
-	for i := range moves {
-		p := (i + lastDir) % len(moves)
-		if utility.CanIMoveInDirection(moves[p]) {
-			move = moves[p]
-			lastDir = p
-			break
-		}
+	for !utility.CanIMoveInDirection(moves[lastDir]) {
+		lastDir = (lastDir + 1) % len(moves)
 	}
-	return move
+
+	return moves[lastDir]
 }
 
 func init() {
