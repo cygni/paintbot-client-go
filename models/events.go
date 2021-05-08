@@ -18,7 +18,8 @@ type GameSettings struct {
 	PointsPerTileOwned             int  `json:"pointsPerTileOwned"`
 	PointsPerCausedStun            int  `json:"pointsPerCausedStun"`
 	NOOFTicksInvulnerableAfterStun int  `json:"noOfTicksInvulnerableAfterStun"`
-	NOOFTicksStunned               int  `json:"noOfTicksStunned"`
+	MinNOOFTicksStunned            int  `json:"minNoOfTicksStunned"`
+	MaxNOOFTicksStunned            int  `json:"maxNoOfTicksStunned"`
 	StartObstacles                 int  `json:"startObstacles"`
 	StartPowerUps                  int  `json:"startPowerUps"`
 	GameDurationInSeconds          int  `json:"gameDurationInSeconds"`
