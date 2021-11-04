@@ -11,8 +11,8 @@ import (
 
 func getWebsocketConnection(gameMode models.GameMode) *websocket.Conn {
 	var u = url.URL{
-		Scheme: "ws",
-		Host:   "server.paintbot.cygni.se:80",
+		Scheme: "wss",
+		Host:   "server.paintbot.cygni.se",
 		//Host: "localhost:8080",
 		Path: string(gameMode),
 	}
